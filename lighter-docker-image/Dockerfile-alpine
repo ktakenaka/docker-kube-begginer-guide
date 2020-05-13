@@ -1,0 +1,19 @@
+FROM golang:1.14.2-alpine3.11
+
+WORKDIR /
+
+# ビルド時に必要なライブラリ・ツールのインストール
+RUN apk add --no-cache --virtual=build-deps git gcc g++
+
+# 実行時にも必要なライブラリ・ツールのインストール
+RUN apk add --no-cache ca-certificates
+
+# todoapiをビルドし、実行ファイルを作る
+COPY . /go/src/github.com/gihyodocker/hello
+RUN cd /go/src/github.com/gihyodocker/hello && go build -o bin/hello cmd/main.go
+RUN cd /go/src/github.com/gihyodocker/hello && cp bin/hello /usr/local/bin/
+
+# ビルド時にだけ必要なライブラリ・ツールのアンインストール
+RUN apk del --no-cache build-deps
+
+CMD ["hello"]
