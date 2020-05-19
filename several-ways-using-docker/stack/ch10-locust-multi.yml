@@ -1,0 +1,39 @@
+version: "3"
+services:
+  master:
+    image: registry:5000/ch10/locust:latest
+    ports:
+      - "80:8089"
+    command:
+      - "-f"
+      - "scenario.py"
+      - "-H"
+      - "http://target_echo:8080"
+    deploy:
+      mode: global
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - loadtest
+
+  slave:
+    image: registry:5000/ch10/locust:latest
+    command:
+      - "-f"
+      - "scenario.py"
+      - "-H"
+      - "http://target_echo:8080"
+      - "--slave"
+      - "--master-host=master"
+    depends_on:
+      - master
+    deploy:
+      replicas: 3
+      placement:
+        constraints: [node.role != manager]
+    networks:
+      - loadtest
+
+networks:
+  loadtest:
+    external: true
